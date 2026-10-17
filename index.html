@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#14121c">
+<title>Dial</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#14121c; --surface:#1e1b2b; --surface2:#292539; --line:#38334e;
+  --text:#f3f0fb; --muted:#a8a3bd; --accent:#c9bfff; --accent-ink:#1a1530; --star:#ffc83d;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{color-scheme:dark}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.35 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) calc(96px + env(safe-area-inset-bottom,0px)) env(safe-area-inset-left,0px);
+}
+body.locked{overflow:hidden}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:640px;margin:0 auto;padding:0 14px}
+
+/* header */
+.top{display:flex;align-items:center;justify-content:space-between;padding:14px 0 10px}
+.top h1{margin:0;font-size:30px;font-weight:800;letter-spacing:-.03em}
+.pill-btn{height:44px;padding:0 18px;border-radius:22px;border:1px solid var(--line);background:var(--surface);font-weight:650}
+
+/* scrolling rows */
+.scroll-row{display:flex;gap:10px;overflow-x:auto;margin:0 -14px;padding:2px 14px 12px;scrollbar-width:none;overscroll-behavior-x:contain}
+.scroll-row::-webkit-scrollbar{display:none}
+
+/* service launcher: chunky preset keys */
+.preset{
+  flex:0 0 auto;width:112px;height:68px;border-radius:18px;padding:10px 12px;
+  display:flex;align-items:flex-end;text-decoration:none;
+  background:var(--c);color:var(--ink);font-weight:800;font-size:15px;line-height:1.1;
+  box-shadow:inset 0 -5px 0 rgba(0,0,0,.2);
+}
+.preset:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.2)}
+
+/* section titles */
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;min-height:44px}
+.sec-head h2{margin:0;font-size:19px;font-weight:750;letter-spacing:-.01em}
+.hint{color:var(--muted);font-size:14px;margin:0 0 10px}
+
+/* filters */
+.filters{margin-top:6px}
+#q{
+  width:100%;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface);
+  color:var(--text);padding:0 14px;font-size:16px;margin-bottom:10px;
+}
+.chips{padding-bottom:6px}
+.chip{
+  flex:0 0 auto;height:40px;padding:0 14px;border-radius:20px;border:1px solid var(--line);
+  background:transparent;display:flex;align-items:center;gap:8px;font-weight:600;font-size:14px;
+}
+.chip i,.badge i,.l-badge i,.dot{width:9px;height:9px;border-radius:50%;background:var(--c);display:inline-block}
+.chip[aria-pressed=true]{background:var(--c,var(--accent));color:var(--ink,var(--accent-ink));border-color:transparent}
+.chip[aria-pressed=true] i{background:var(--ink,var(--accent-ink))}
+
+/* tiles */
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.scroll-row .tile{flex:0 0 158px}
+.tile{position:relative;background:var(--surface);border-radius:16px;border-left:5px solid var(--c);min-height:100px;overflow:hidden}
+.tile:active{background:var(--surface2)}
+.tile-link{
+  display:block;width:100%;height:100%;min-height:100px;padding:12px 44px 42px 12px;
+  color:inherit;text-decoration:none;text-align:left;background:none;border:0;
+  -webkit-touch-callout:none;-webkit-user-select:none;user-select:none;
+}
+.emoji{display:block;font-size:22px;line-height:1.1;margin-bottom:4px}
+.t-title{font-weight:700;font-size:16px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.badge{
+  position:absolute;left:10px;bottom:7px;height:30px;max-width:calc(100% - 20px);padding:0 10px 0 8px;border-radius:15px;border:0;
+  background:rgba(255,255,255,.07);color:var(--c);font-weight:650;font-size:12px;display:flex;align-items:center;gap:6px;
+}
+.badge span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.star{position:absolute;top:0;right:0;width:46px;height:46px;border:0;background:none;color:var(--muted);font-size:22px}
+.star[aria-pressed=true]{color:var(--star)}
+.tile-edit{position:absolute;right:4px;bottom:4px;display:flex;gap:2px}
+.tile-edit .icon-btn{width:34px;height:34px;font-size:14px;background:var(--surface2)}
+.tile-edit+.badge{max-width:calc(100% - 120px)}
+
+/* categories */
+.cat{margin-top:6px}
+.cat-head{display:flex;align-items:center;gap:2px;margin:10px 0 8px}
+.cat-toggle{flex:1;min-height:48px;display:flex;align-items:center;gap:10px;background:none;border:0;text-align:left;padding:0}
+.chev{display:inline-block;width:18px;color:var(--muted);transition:transform .15s}
+.cat-toggle[aria-expanded=true] .chev{transform:rotate(90deg)}
+.cat-name{font-size:19px;font-weight:750;letter-spacing:-.01em}
+.count{color:var(--muted);font-size:14px}
+.empty{color:var(--muted);font-size:14px;padding:6px 0 12px}
+
+/* icon buttons */
+.icon-btn{width:44px;height:44px;border-radius:12px;border:0;background:none;color:var(--muted);font-size:17px;display:inline-flex;align-items:center;justify-content:center}
+.icon-btn:disabled{opacity:.3}
+
+/* listen later */
+.later-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.later-item{display:flex;align-items:center;gap:4px;background:var(--surface);border-radius:14px;padding:4px 4px 4px 6px;min-height:60px}
+.later-item.done .l-title{text-decoration:line-through;color:var(--muted)}
+.later-item.done .later-main{opacity:.65}
+.tick{width:44px;height:44px;flex:0 0 auto;border-radius:50%;background:none;border:0;display:flex;align-items:center;justify-content:center;color:transparent;font-weight:800}
+.tick::before{content:"";position:absolute;width:26px;height:26px;border-radius:50%;border:2px solid var(--muted)}
+.tick{position:relative}
+.tick span{position:relative;font-size:15px}
+.tick[aria-pressed=true]{color:var(--accent-ink)}
+.tick[aria-pressed=true]::before{background:var(--accent);border-color:var(--accent)}
+.later-main{flex:1;min-width:0;padding:6px 4px;color:inherit;text-decoration:none;display:block}
+.l-title{display:block;font-weight:650;overflow-wrap:anywhere}
+.l-badge{display:inline-flex;align-items:center;gap:6px;color:var(--c);font-size:12px;font-weight:650;margin-top:2px}
+.later-add{display:flex;gap:8px;margin-top:10px}
+.later-add input{flex:1;min-width:0;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:0 14px;font-size:16px}
+.linkish{background:none;border:0;color:var(--accent);font-weight:650;padding:10px 4px;min-height:44px}
+
+/* buttons + forms */
+.btn{height:48px;padding:0 18px;border-radius:14px;border:1px solid var(--line);background:var(--surface2);font-weight:650}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+.btn.danger{color:#ff8f88}
+.row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.row .btn{flex:1}
+form label{display:block;font-size:14px;color:var(--muted);margin-top:12px}
+form input[type=text],form select{
+  display:block;width:100%;height:48px;margin-top:5px;border-radius:12px;border:1px solid var(--line);
+  background:var(--bg);color:var(--text);padding:0 12px;font-size:16px;
+}
+form input[type=color]{display:block;width:100%;height:48px;margin-top:5px;border-radius:12px;border:1px solid var(--line);background:var(--bg);padding:4px}
+form label.check{display:flex;align-items:center;gap:12px;color:var(--text);min-height:48px;font-size:16px}
+form input[type=checkbox]{width:24px;height:24px;accent-color:var(--accent)}
+
+/* sheets */
+.scrim{position:fixed;inset:0;background:rgba(5,4,10,.65);z-index:40}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:41;max-width:640px;margin:0 auto;max-height:90vh;overflow-y:auto;
+  background:var(--surface);border-radius:22px 22px 0 0;padding:6px 16px calc(18px + env(safe-area-inset-bottom,0px));
+  animation:up .18s ease-out;
+}
+@keyframes up{from{transform:translateY(24px);opacity:.4}to{transform:none;opacity:1}}
+.sheet-head{display:flex;align-items:center;justify-content:space-between;min-height:56px}
+.sheet-head h2{margin:0;font-size:20px;font-weight:750}
+.menu{display:flex;flex-direction:column;gap:4px}
+.menu button{height:54px;border:0;border-radius:12px;background:none;text-align:left;padding:0 10px;font-size:17px;font-weight:550}
+.menu button:active{background:var(--surface2)}
+.menu hr{border:0;border-top:1px solid var(--line);margin:6px 0;width:100%}
+.svc-list{list-style:none;margin:0;padding:0}
+.svc-row{display:flex;align-items:center;gap:6px;min-height:54px}
+.svc-row .dot{width:14px;height:14px;margin:0 6px}
+.svc-name{flex:1;font-weight:600}
+.svc-name small{color:var(--muted);font-weight:400}
+
+/* edit bar + toast */
+.editbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--surface2);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:none;align-items:center;justify-content:space-between;gap:12px}
+.editbar.on{display:flex}
+.editbar span{font-weight:650}
+.editbar .btn{flex:0 0 auto}
+#toast{
+  position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);z-index:60;
+  background:#f3f0fb;color:#1a1530;padding:12px 18px;border-radius:14px;font-weight:600;font-size:15px;max-width:90vw;
+  opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;text-align:center;
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){.sheet{animation:none}#toast,.chev{transition:none}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Dial</h1>
+    <button class="pill-btn" data-act="manage" type="button">Manage</button>
+  </header>
+
+  <nav id="launcher" class="scroll-row" aria-label="Open a music service"></nav>
+
+  <section id="favs"></section>
+
+  <section class="filters" aria-label="Search and filter">
+    <input id="q" type="search" placeholder="Search your list" autocomplete="off" enterkeyhint="search">
+    <div id="chips" class="scroll-row chips" role="group" aria-label="Filter by service"></div>
+  </section>
+
+  <section id="later"></section>
+  <div id="cats"></div>
+</div>
+
+<div id="editbar" class="editbar"><span>Editing layout</span><button class="btn primary" data-act="edit-done" type="button">Done</button></div>
+<div id="sheet-root"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- =====================================================================
+     1. YOUR LIST  (edit this block to change the starting data)
+     ---------------------------------------------------------------------
+     - This is only used the FIRST time the app opens on a phone (or after
+       "Reset to starter list"). After that, your changes live on the phone
+       and you edit things inside the app (Manage menu).
+     - Keep the commas and quote marks exactly as they are.
+     - Every tile needs a "service" id from the services list and a "cat"
+       id from the categories list.
+     ===================================================================== -->
+<script>
+const SEED = {
+
+  // SERVICES. "launcher": true puts the service in the button row at the top.
+  // "hosts" are the website names used to auto-detect the service from a link.
+  services: [
+    { id: "ytmusic",     name: "YouTube Music", home: "https://music.youtube.com",     color: "#ff4e45", hosts: ["music.youtube.com"],           launcher: true  },
+    { id: "bbc",         name: "BBC Sounds",    home: "https://www.bbc.co.uk/sounds",  color: "#ff5c9a", hosts: ["bbc.co.uk", "bbc.com"],        launcher: true  },
+    { id: "mixcloud",    name: "Mixcloud",      home: "https://www.mixcloud.com",      color: "#8b7bff", hosts: ["mixcloud.com"],                launcher: true  },
+    { id: "tunein",      name: "TuneIn",        home: "https://tunein.com",            color: "#22d3c5", hosts: ["tunein.com"],                  launcher: true  },
+    { id: "radionet",    name: "Radio.net",     home: "https://www.radio.net",         color: "#3b9dff", hosts: ["radio.net"],                   launcher: true  },
+    { id: "radioplayer", name: "Radioplayer",   home: "https://www.radioplayer.co.uk", color: "#ffc83d", hosts: ["radioplayer.co.uk", "radioplayer.com"], launcher: true },
+    { id: "ytalbum",     name: "YouTube album", home: "https://www.youtube.com",       color: "#f08a4b", hosts: ["youtube.com", "youtu.be"],     launcher: false }
+  ],
+
+  // CATEGORIES (your own groupings, shown in this order)
+  categories: [
+    { id: "chill",   name: "Chill",         emoji: "🌊" },
+    { id: "workout", name: "Workout",       emoji: "💪" },
+    { id: "dnb",     name: "Drum & Bass",   emoji: "🥁" },
+    { id: "dub",     name: "Reggae / Dub",  emoji: "🌴" },
+    { id: "talk",    name: "Talk",          emoji: "🎙️" }
+  ],
+
+  // TILES (sample entries: swap in your own)
+  tiles: [
+    { title: "Late-night chill",      url: "https://music.youtube.com/playlist?list=PL_EXAMPLE_CHILL", service: "ytmusic",     cat: "chill",   emoji: "🌙", fav: true  },
+    { title: "BBC Radio 6 Music",     url: "https://www.bbc.co.uk/sounds/play/live:bbc_6music",        service: "bbc",         cat: "chill",   emoji: "🎧", fav: true  },
+    { title: "Gym power hour",        url: "https://music.youtube.com/playlist?list=PL_EXAMPLE_GYM",   service: "ytmusic",     cat: "workout", emoji: "🔥", fav: false },
+    { title: "Jungle & DnB mixes",    url: "https://www.mixcloud.com/discover/drum-and-bass/",         service: "mixcloud",    cat: "dnb",     emoji: "",   fav: false },
+    { title: "Reggae stations",       url: "https://www.radio.net/genre/reggae",                       service: "radionet",    cat: "dub",     emoji: "🌴", fav: false },
+    { title: "Dub on TuneIn",         url: "https://tunein.com/search/?query=dub",                     service: "tunein",      cat: "dub",     emoji: "",   fav: false },
+    { title: "Dub album (example)",   url: "https://www.youtube.com/playlist?list=OLAK5uy_EXAMPLE",    service: "ytalbum",     cat: "dub",     emoji: "💿", fav: false },
+    { title: "Desert Island Discs",   url: "https://www.bbc.co.uk/sounds/brand/b006qnmr",              service: "bbc",         cat: "talk",    emoji: "🏝️", fav: false },
+    { title: "UK stations",           url: "https://www.radioplayer.co.uk",                            service: "radioplayer", cat: "talk",    emoji: "",   fav: false }
+  ],
+
+  // LISTEN LATER (saved links; the service is detected from the link)
+  later: [
+    { title: "Mix someone recommended", url: "https://www.mixcloud.com/NTSRadio/", done: false },
+    { title: "Album to try",            url: "https://music.youtube.com/playlist?list=OLAK5uy_EXAMPLE2", done: false }
+  ]
+};
+</script>
+
+<!-- =====================================================================
+     2. THE APP (you shouldn't need to touch anything below this line)
+     ===================================================================== -->
+<script>
+(function () {
+'use strict';
+
+/* ---------- small helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const uid = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
+function inkFor(hex) {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+  if (!m) return '#ffffff';
+  const n = parseInt(m[1], 16), r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.45 ? '#1a1530' : '#ffffff';
+}
+function parseUrl(u) { try { return new URL(u); } catch (e) { return null; } }
+function cleanUrl(raw) {
+  let u = String(raw || '').trim();
+  if (!u) return null;
+  if (!/^[a-z][a-z0-9+.-]*:/i.test(u)) u = 'https://' + u;
+  const p = parseUrl(u);
+  if (!p || !/^https?:$/.test(p.protocol) || !p.hostname.includes('.')) return null;
+  return p.href;
+}
+function extractUrl(text) {
+  const m = /https?:\/\/[^\s<>"']+/i.exec(String(text || ''));
+  return m ? m[0].replace(/[.,;)]+$/, '') : null;
+}
+
+/* ---------- state ---------- */
+const KEY = 'dial.v1';
+const OTHER = { id: '', name: 'Other', home: '', color: '#8d89a3', hosts: [], launcher: false };
+let state;
+const UI = { filter: '', q: '', edit: false };
+let warned = false;
+
+function sanitize(s) {
+  return {
+    v: 1,
+    services: s.services.map(x => ({
+      id: String(x.id || uid()), name: String(x.name || 'Service'), home: cleanUrl(x.home) || '',
+      color: /^#[0-9a-f]{6}$/i.test(x.color) ? x.color : '#8d89a3',
+      hosts: Array.isArray(x.hosts) ? x.hosts.map(h => String(h).toLowerCase()) : [], launcher: !!x.launcher
+    })),
+    categories: s.categories.map(c => ({ id: String(c.id || uid()), name: String(c.name || 'Untitled'), emoji: String(c.emoji || ''), collapsed: !!c.collapsed })),
+    tiles: s.tiles.map(t => ({
+      id: String(t.id || uid()), title: String(t.title || 'Untitled'), url: cleanUrl(t.url),
+      service: String(t.service || ''), cat: String(t.cat || ''), emoji: String(t.emoji || ''), fav: !!t.fav
+    })).filter(t => t.url),
+    later: s.later.map(l => ({ id: String(l.id || uid()), title: String(l.title || 'Saved link'), url: cleanUrl(l.url), done: !!l.done, added: l.added || Date.now() })).filter(l => l.url),
+    laterCollapsed: !!s.laterCollapsed
+  };
+}
+const validShape = s => s && Array.isArray(s.services) && Array.isArray(s.categories) && Array.isArray(s.tiles) && Array.isArray(s.later);
+function loadState() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) { const s = JSON.parse(raw); if (validShape(s)) return sanitize(s); }
+  } catch (e) { /* fall through to the starter list */ }
+  return sanitize(clone(SEED));
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); }
+  catch (e) { if (!warned) { warned = true; toast('Could not save on this device'); } }
+}
+function commit() { save(); renderAll(); }
+
+const svcOf = id => state.services.find(s => s.id === id) || OTHER;
+const catOf = id => state.categories.find(c => c.id === id);
+function detectService(url) {
+  const p = parseUrl(url);
+  if (!p) return '';
+  const h = p.hostname.toLowerCase();
+  let best = '', len = 0;
+  state.services.forEach(s => (s.hosts || []).forEach(x => {
+    if ((h === x || h.endsWith('.' + x)) && x.length > len) { best = s.id; len = x.length; }
+  }));
+  return best;
+}
+
+/* ---------- toast ---------- */
+let tt;
+function toast(msg) {
+  const el = $('#toast');
+  el.textContent = msg; el.classList.add('show');
+  clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+/* ---------- filtering ---------- */
+const filtering = () => !UI.edit && !!(UI.filter || UI.q);
+const matches = (text, svcId) => !filtering() || ((!UI.filter || svcId === UI.filter) && (!UI.q || text.toLowerCase().includes(UI.q)));
+
+/* ---------- rendering ---------- */
+function renderLauncher() {
+  const list = state.services.filter(s => s.launcher && s.home);
+  $('#launcher').innerHTML = list.map(s =>
+    `<a class="preset" style="--c:${esc(s.color)};--ink:${inkFor(s.color)}" href="${esc(s.home)}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a>`
+  ).join('') || '<p class="hint">No service buttons yet. Manage → Services.</p>';
+}
+
+function tileHTML(t) {
+  const s = svcOf(t.service);
+  const label = (t.emoji ? `<span class="emoji" aria-hidden="true">${esc(t.emoji)}</span>` : '') + `<span class="t-title">${esc(t.title)}</span>`;
+  const link = UI.edit
+    ? `<button type="button" class="tile-link" data-act="edit-tile" data-id="${t.id}">${label}</button>`
+    : `<a class="tile-link" href="${esc(t.url)}" target="_blank" rel="noopener noreferrer" data-id="${t.id}">${label}</a>`;
+  return `<div class="tile" style="--c:${esc(s.color)}">${link}
+    <button type="button" class="star" data-act="star" data-id="${t.id}" aria-pressed="${t.fav}" aria-label="${t.fav ? 'Remove from' : 'Add to'} favourites">${t.fav ? '★' : '☆'}</button>
+    <button type="button" class="badge" data-act="filter-service" data-svc="${esc(s.id)}" aria-label="Show only ${esc(s.name)}"><i></i><span>${esc(s.name)}</span></button>
+    ${UI.edit ? `<div class="tile-edit"><button class="icon-btn" data-act="tile-left" data-id="${t.id}" aria-label="Move earlier">◀</button><button class="icon-btn" data-act="tile-right" data-id="${t.id}" aria-label="Move later">▶</button><button class="icon-btn" data-act="del-tile" data-id="${t.id}" aria-label="Delete tile">✕</button></div>` : ''}
+  </div>`;
+}
+
+function renderFavs() {
+  const favs = state.tiles.filter(t => t.fav);
+  $('#favs').innerHTML = `<div class="sec-head"><h2>Favourites</h2></div>` + (favs.length
+    ? `<div class="scroll-row">${favs.map(tileHTML).join('')}</div>`
+    : `<p class="hint">Tap ☆ on a tile, or press and hold it, to pin it here.</p>`);
+}
+
+function renderChips() {
+  const chip = (id, name, color) => {
+    const on = UI.filter === id;
+    const st = color ? `--c:${esc(color)};--ink:${inkFor(color)}` : '';
+    return `<button type="button" class="chip" style="${st}" data-act="chip" data-svc="${esc(id)}" aria-pressed="${on}">${color ? '<i></i>' : ''}${esc(name)}</button>`;
+  };
+  $('#chips').innerHTML = `<button type="button" class="chip" data-act="chip" data-svc="" aria-pressed="${UI.filter === ''}">All</button>` +
+    state.services.map(s => chip(s.id, s.name, s.color)).join('');
+}
+
+function renderLater() {
+  const prev = $('#laterInput') ? $('#laterInput').value : '';
+  const items = state.later.filter(l => matches(l.title + ' ' + svcOf(detectService(l.url)).name, detectService(l.url)));
+  const sorted = items.filter(l => !l.done).concat(items.filter(l => l.done));
+  const pending = state.later.filter(l => !l.done).length;
+  const doneCount = state.later.filter(l => l.done).length;
+  const open = !state.laterCollapsed || filtering();
+  const rows = sorted.map(l => {
+    const s = svcOf(detectService(l.url));
+    return `<li class="later-item ${l.done ? 'done' : ''}">
+      <button type="button" class="tick" data-act="later-toggle" data-id="${l.id}" aria-pressed="${l.done}" aria-label="${l.done ? 'Mark as not done' : 'Mark as done'}"><span>✓</span></button>
+      <a class="later-main" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer"><span class="l-title">${esc(l.title)}</span><span class="l-badge" style="--c:${esc(s.color)}"><i></i>${esc(s.name)}</span></a>
+      <button type="button" class="icon-btn" data-act="later-edit" data-id="${l.id}" aria-label="Edit">✎</button>
+      <button type="button" class="icon-btn" data-act="later-del" data-id="${l.id}" aria-label="Delete">✕</button>
+    </li>`;
+  }).join('');
+  $('#later').innerHTML = `
+    <div class="sec-head">
+      <button type="button" class="cat-toggle" data-act="toggle-later" aria-expanded="${open}"><span class="chev">▸</span><span class="cat-name">Listen later</span><span class="count">${pending}</span></button>
+      ${doneCount ? `<button type="button" class="linkish" data-act="later-clear">Clear ${doneCount} done</button>` : ''}
+    </div>` + (open ? `
+    ${rows ? `<ul class="later-list">${rows}</ul>` : `<p class="empty">${state.later.length ? 'Nothing matches your search.' : 'Nothing saved yet. Paste a link below, or share one to Dial from another app.'}</p>`}
+    <form id="laterForm" class="later-add"><input id="laterInput" type="text" inputmode="url" placeholder="Paste a link to save" autocomplete="off" aria-label="Link to save"><button class="btn primary" type="submit">Save</button></form>` : '');
+  if ($('#laterInput') && prev) $('#laterInput').value = prev;
+}
+
+function renderCats() {
+  const html = state.categories.map((c, ci) => {
+    const tiles = state.tiles.filter(t => t.cat === c.id && matches(t.title + ' ' + svcOf(t.service).name + ' ' + c.name, t.service));
+    if (filtering() && !tiles.length) return '';
+    const open = !c.collapsed || filtering() || UI.edit;
+    const editBtns = UI.edit ? `
+      <button class="icon-btn" data-act="cat-up" data-id="${c.id}" aria-label="Move section up" ${ci === 0 ? 'disabled' : ''}>▲</button>
+      <button class="icon-btn" data-act="cat-down" data-id="${c.id}" aria-label="Move section down" ${ci === state.categories.length - 1 ? 'disabled' : ''}>▼</button>
+      <button class="icon-btn" data-act="cat-edit" data-id="${c.id}" aria-label="Rename section">✎</button>
+      <button class="icon-btn" data-act="cat-del" data-id="${c.id}" aria-label="Delete section">✕</button>` : '';
+    return `<section class="cat">
+      <div class="cat-head">
+        <button type="button" class="cat-toggle" data-act="toggle-cat" data-id="${c.id}" aria-expanded="${open}"><span class="chev">▸</span>${c.emoji ? `<span aria-hidden="true">${esc(c.emoji)}</span>` : ''}<span class="cat-name">${esc(c.name)}</span><span class="count">${state.tiles.filter(t => t.cat === c.id).length}</span></button>
+        ${editBtns}
+      </div>
+      ${open ? (tiles.length ? `<div class="grid">${tiles.map(tileHTML).join('')}</div>` : `<p class="empty">No tiles here yet. Manage → Add tile.</p>`) : ''}
+    </section>`;
+  }).join('');
+  $('#cats').innerHTML = html || (filtering() ? '<p class="empty">Nothing matches.</p>' : '<p class="empty">No sections yet. Manage → Add section.</p>');
+}
+
+function renderEditBar() { $('#editbar').classList.toggle('on', UI.edit); }
+function renderAll() { renderLauncher(); renderFavs(); renderChips(); renderLater(); renderCats(); renderEditBar(); }
+
+/* ---------- sheets (pop-up panels) ---------- */
+function openSheet(title, html, mount) {
+  closeSheet();
+  $('#sheet-root').innerHTML = `<div class="scrim" data-act="close-sheet"></div>
+    <div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+      <div class="sheet-head"><h2>${esc(title)}</h2><button type="button" class="icon-btn" data-act="close-sheet" aria-label="Close">✕</button></div>
+      <div class="sheet-body">${html}</div></div>`;
+  document.body.classList.add('locked');
+  if (mount) mount($('#sheet-root .sheet-body'));
+}
+function closeSheet() { $('#sheet-root').innerHTML = ''; document.body.classList.remove('locked'); }
+function confirmSheet(msg, label, fn) {
+  openSheet('Are you sure?', `<p>${esc(msg)}</p><div class="row"><button type="button" class="btn" data-act="close-sheet">Cancel</button><button type="button" class="btn danger" id="yes">${esc(label)}</button></div>`,
+    b => { $('#yes', b).onclick = () => { closeSheet(); fn(); }; });
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
+
+function manageSheet() {
+  openSheet('Manage', `<div class="menu">
+    <button type="button" data-act="add-tile">Add tile</button>
+    <button type="button" data-act="add-cat">Add section</button>
+    <button type="button" data-act="edit-mode">Reorder, edit or delete</button>
+    <button type="button" data-act="services">Services and top buttons</button>
+    <hr>
+    <button type="button" data-act="export">Export backup</button>
+    <button type="button" data-act="import">Import backup</button>
+    ${deferredInstall ? '<button type="button" data-act="install">Install Dial on this phone</button>' : ''}
+    <hr>
+    <button type="button" data-act="reset">Reset to starter list</button>
+  </div>`);
+}
+
+const svcOptions = sel => `<option value="">Other</option>` + state.services.map(s => `<option value="${esc(s.id)}" ${s.id === sel ? 'selected' : ''}>${esc(s.name)}</option>`).join('');
+
+function tileSheet(id) {
+  if (!state.categories.length) { toast('Add a section first'); return; }
+  const t = id ? state.tiles.find(x => x.id === id) : null;
+  const d = t || { title: '', url: '', service: '', cat: state.categories[0].id, emoji: '', fav: false };
+  openSheet(t ? 'Edit tile' : 'Add tile', `<form id="f" autocomplete="off">
+    <label>Name<input type="text" name="title" value="${esc(d.title)}" required></label>
+    <label>Link<input type="text" name="url" inputmode="url" value="${esc(d.url)}" placeholder="https://"></label>
+    <label>Service<select name="service">${svcOptions(d.service)}</select></label>
+    <label>Section<select name="cat">${state.categories.map(c => `<option value="${esc(c.id)}" ${c.id === d.cat ? 'selected' : ''}>${esc(c.name)}</option>`).join('')}</select></label>
+    <label>Emoji (optional)<input type="text" name="emoji" maxlength="8" value="${esc(d.emoji)}"></label>
+    <label class="check"><input type="checkbox" name="fav" ${d.fav ? 'checked' : ''}> Show in Favourites</label>
+    <div class="row"><button type="button" class="btn" data-act="close-sheet">Cancel</button><button type="submit" class="btn primary">Save</button></div>
+    ${t ? '<div class="row"><button type="button" class="btn danger" id="del">Delete tile</button></div>' : ''}
+  </form>`, b => {
+    const f = $('#f', b); let touched = !!t;
+    f.elements.service.addEventListener('change', () => { touched = true; });
+    f.elements.url.addEventListener('input', () => { if (!touched) f.elements.service.value = detectService(cleanUrl(f.elements.url.value) || ''); });
+    if (t) $('#del', b).onclick = () => delTile(id);
+    f.onsubmit = e => {
+      e.preventDefault();
+      const url = cleanUrl(f.elements.url.value);
+      if (!url) { toast('That link does not look right. It should start with https://'); return; }
+      const rec = { title: f.elements.title.value.trim() || 'Untitled', url, service: f.elements.service.value, cat: f.elements.cat.value, emoji: f.elements.emoji.value.trim(), fav: f.elements.fav.checked };
+      if (t) Object.assign(t, rec); else state.tiles.push(Object.assign({ id: uid() }, rec));
+      closeSheet(); commit(); toast(t ? 'Tile saved' : 'Tile added');
+    };
+  });
+}
+function delTile(id) {
+  const t = state.tiles.find(x => x.id === id); if (!t) return;
+  confirmSheet(`Delete “${t.title}”?`, 'Delete', () => { state.tiles = state.tiles.filter(x => x.id !== id); commit(); toast('Tile deleted'); });
+}
+
+function catSheet(id) {
+  const c = id ? catOf(id) : null;
+  openSheet(c ? 'Rename section' : 'Add section', `<form id="f" autocomplete="off">
+    <label>Name<input type="text" name="name" value="${esc(c ? c.name : '')}" required></label>
+    <label>Emoji (optional)<input type="text" name="emoji" maxlength="8" value="${esc(c ? c.emoji : '')}"></label>
+    <div class="row"><button type="button" class="btn" data-act="close-sheet">Cancel</button><button type="submit" class="btn primary">Save</button></div>
+  </form>`, b => {
+    const f = $('#f', b);
+    f.onsubmit = e => {
+      e.preventDefault();
+      const rec = { name: f.elements.name.value.trim() || 'Untitled', emoji: f.elements.emoji.value.trim() };
+      if (c) Object.assign(c, rec); else state.categories.push(Object.assign({ id: uid(), collapsed: false }, rec));
+      closeSheet(); commit();
+    };
+  });
+}
+function delCat(id) {
+  const c = catOf(id); if (!c) return;
+  const n = state.tiles.filter(t => t.cat === id).length;
+  confirmSheet(n ? `Delete the section “${c.name}” and its ${n} tile${n === 1 ? '' : 's'}?` : `Delete the section “${c.name}”?`, 'Delete', () => {
+    state.tiles = state.tiles.filter(t => t.cat !== id);
+    state.categories = state.categories.filter(x => x.id !== id);
+    commit();
+  });
+}
+
+function servicesSheet() {
+  const rows = state.services.map((s, i) => `<li class="svc-row"><i class="dot" style="--c:${esc(s.color)}"></i>
+    <span class="svc-name">${esc(s.name)}${s.launcher ? '' : ' <small>(not in top row)</small>'}</span>
+    <button class="icon-btn" data-act="svc-up" data-id="${s.id}" aria-label="Move up" ${i === 0 ? 'disabled' : ''}>▲</button>
+    <button class="icon-btn" data-act="svc-down" data-id="${s.id}" aria-label="Move down" ${i === state.services.length - 1 ? 'disabled' : ''}>▼</button>
+    <button class="icon-btn" data-act="svc-edit" data-id="${s.id}" aria-label="Edit">✎</button></li>`).join('');
+  openSheet('Services', `<ul class="svc-list">${rows}</ul><div class="row"><button type="button" class="btn primary" data-act="svc-add">Add service</button></div>`);
+}
+function svcSheet(id) {
+  const s = id ? state.services.find(x => x.id === id) : null;
+  const d = s || { name: '', home: '', color: '#8b7bff', hosts: [], launcher: true };
+  openSheet(s ? 'Edit service' : 'Add service', `<form id="f" autocomplete="off">
+    <label>Name<input type="text" name="name" value="${esc(d.name)}" required></label>
+    <label>Home page link (opened by the top button)<input type="text" name="home" inputmode="url" value="${esc(d.home)}" placeholder="https://"></label>
+    <label>Colour<input type="color" name="color" value="${esc(d.color)}"></label>
+    <label>Website names, to recognise links (comma separated)<input type="text" name="hosts" value="${esc(d.hosts.join(', '))}" placeholder="example.com, example.de"></label>
+    <label class="check"><input type="checkbox" name="launcher" ${d.launcher ? 'checked' : ''}> Show as a button in the top row</label>
+    <div class="row"><button type="button" class="btn" data-act="services">Cancel</button><button type="submit" class="btn primary">Save</button></div>
+    ${s ? '<div class="row"><button type="button" class="btn danger" id="del">Delete service</button></div>' : ''}
+  </form>`, b => {
+    const f = $('#f', b);
+    if (s) $('#del', b).onclick = () => {
+      const n = state.tiles.filter(t => t.service === s.id).length;
+      confirmSheet(n ? `Delete ${s.name}? ${n} tile${n === 1 ? '' : 's'} will show as “Other”.` : `Delete ${s.name}?`, 'Delete', () => { state.services = state.services.filter(x => x.id !== s.id); commit(); servicesSheet(); });
+    };
+    f.onsubmit = e => {
+      e.preventDefault();
+      const home = f.elements.home.value.trim() ? cleanUrl(f.elements.home.value) : '';
+      if (f.elements.home.value.trim() && !home) { toast('That home page link does not look right'); return; }
+      const hosts = f.elements.hosts.value.split(/[,\s]+/).map(h => h.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '')).filter(Boolean);
+      const rec = { name: f.elements.name.value.trim() || 'Service', home, color: f.elements.color.value, hosts, launcher: f.elements.launcher.checked };
+      if (s) Object.assign(s, rec); else state.services.push(Object.assign({ id: uid() }, rec));
+      save(); renderAll(); servicesSheet();
+    };
+  });
+}
+
+function laterEditSheet(id) {
+  const l = state.later.find(x => x.id === id); if (!l) return;
+  openSheet('Edit saved link', `<form id="f" autocomplete="off">
+    <label>Title<input type="text" name="title" value="${esc(l.title)}" required></label>
+    <label>Link<input type="text" name="url" inputmode="url" value="${esc(l.url)}"></label>
+    <div class="row"><button type="button" class="btn" data-act="close-sheet">Cancel</button><button type="submit" class="btn primary">Save</button></div>
+  </form>`, b => {
+    const f = $('#f', b);
+    f.onsubmit = e => {
+      e.preventDefault();
+      const url = cleanUrl(f.elements.url.value);
+      if (!url) { toast('That link does not look right'); return; }
+      l.title = f.elements.title.value.trim() || l.title; l.url = url;
+      closeSheet(); commit();
+    };
+  });
+}
+
+/* ---------- listen later ---------- */
+function addLater(url, title) {
+  const u = cleanUrl(url);
+  if (!u) return false;
+  if (state.later.some(l => l.url === u && !l.done)) { toast('Already in Listen later'); return true; }
+  const s = svcOf(detectService(u));
+  state.later.unshift({ id: uid(), title: (title && title.trim()) || (s.id ? s.name + ' link' : parseUrl(u).hostname.replace(/^www\./, '')), url: u, done: false, added: Date.now() });
+  state.laterCollapsed = false;
+  commit(); toast('Saved to Listen later');
+  return true;
+}
+
+/* ---------- backup ---------- */
+function exportBackup() {
+  const data = JSON.stringify(Object.assign({ app: 'dial', exportedAt: new Date().toISOString() }, state), null, 2);
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+  a.download = 'dial-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('Backup downloaded');
+}
+function importBackup() {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json,application/json';
+  inp.onchange = () => {
+    const file = inp.files && inp.files[0]; if (!file) return;
+    file.text().then(txt => {
+      let s; try { s = JSON.parse(txt); } catch (e) { toast('That file is not a valid backup'); return; }
+      if (!validShape(s)) { toast('That file is not a Dial backup'); return; }
+      confirmSheet('Replace everything on this phone with the backup? Your current tiles and saved links will be overwritten.', 'Replace', () => {
+        state = sanitize(s); UI.filter = ''; commit(); toast('Backup loaded');
+      });
+    });
+  };
+  inp.click();
+}
+
+/* ---------- moving things around ---------- */
+function moveIn(arr, id, dir) {
+  const i = arr.findIndex(x => x.id === id), j = i + dir;
+  if (i < 0 || j < 0 || j >= arr.length) return;
+  [arr[i], arr[j]] = [arr[j], arr[i]];
+}
+function moveTile(id, dir) {
+  const t = state.tiles.find(x => x.id === id); if (!t) return;
+  const same = state.tiles.map((x, i) => x.cat === t.cat ? i : -1).filter(i => i >= 0);
+  const i = state.tiles.indexOf(t), swap = same[same.indexOf(i) + dir];
+  if (swap == null) return;
+  [state.tiles[i], state.tiles[swap]] = [state.tiles[swap], state.tiles[i]];
+  commit();
+}
+function toggleFav(id, viaHold) {
+  const t = state.tiles.find(x => x.id === id); if (!t) return;
+  t.fav = !t.fav; commit();
+  toast(t.fav ? 'Added to Favourites' : 'Removed from Favourites');
+  if (viaHold && navigator.vibrate) navigator.vibrate(25);
+}
+function setFilter(id) {
+  UI.filter = UI.filter === id ? '' : id;
+  renderChips(); renderLater(); renderCats();
+  if (UI.filter) toast('Showing ' + svcOf(UI.filter).name + ' only. Tap again to clear.');
+}
+
+/* ---------- press-and-hold on a tile = favourite ---------- */
+let holdTimer = null, held = false, hx = 0, hy = 0;
+document.addEventListener('pointerdown', e => {
+  held = false; clearTimeout(holdTimer);
+  const link = e.target.closest('.tile-link');
+  if (!link || UI.edit || !link.dataset.id) return;
+  hx = e.clientX; hy = e.clientY;
+  holdTimer = setTimeout(() => { held = true; toggleFav(link.dataset.id, true); }, 550);
+});
+document.addEventListener('pointermove', e => { if (holdTimer && (Math.abs(e.clientX - hx) > 10 || Math.abs(e.clientY - hy) > 10)) { clearTimeout(holdTimer); holdTimer = null; } });
+['pointerup', 'pointercancel'].forEach(n => document.addEventListener(n, () => { clearTimeout(holdTimer); holdTimer = null; }));
+document.addEventListener('contextmenu', e => { if (e.target.closest('.tile-link')) e.preventDefault(); });
+
+/* ---------- clicks ---------- */
+document.addEventListener('click', e => {
+  if (held) { held = false; if (e.target.closest('.tile-link')) { e.preventDefault(); e.stopPropagation(); return; } }
+  const el = e.target.closest('[data-act]'); if (!el) return;
+  const act = el.dataset.act, id = el.dataset.id;
+  switch (act) {
+    case 'manage': manageSheet(); break;
+    case 'close-sheet': closeSheet(); break;
+    case 'add-tile': tileSheet(); break;
+    case 'add-cat': catSheet(); break;
+    case 'edit-mode': closeSheet(); UI.edit = true; renderAll(); break;
+    case 'edit-done': UI.edit = false; renderAll(); break;
+    case 'services': servicesSheet(); break;
+    case 'svc-add': svcSheet(); break;
+    case 'svc-edit': svcSheet(id); break;
+    case 'svc-up': moveIn(state.services, id, -1); save(); renderAll(); servicesSheet(); break;
+    case 'svc-down': moveIn(state.services, id, 1); save(); renderAll(); servicesSheet(); break;
+    case 'export': closeSheet(); exportBackup(); break;
+    case 'import': closeSheet(); importBackup(); break;
+    case 'install': if (deferredInstall) { closeSheet(); deferredInstall.prompt(); deferredInstall = null; } break;
+    case 'reset': confirmSheet('Go back to the starter list? This removes your own tiles, sections and saved links from this phone.', 'Reset', () => { state = sanitize(clone(SEED)); UI.filter = ''; UI.q = ''; $('#q').value = ''; commit(); toast('Starter list restored'); }); break;
+    case 'star': toggleFav(id); break;
+    case 'filter-service': setFilter(el.dataset.svc); break;
+    case 'chip': UI.filter = el.dataset.svc; renderChips(); renderLater(); renderCats(); break;
+    case 'edit-tile': tileSheet(id); break;
+    case 'tile-left': moveTile(id, -1); break;
+    case 'tile-right': moveTile(id, 1); break;
+    case 'del-tile': delTile(id); break;
+    case 'toggle-cat': { const c = catOf(id); if (c && !UI.edit) { c.collapsed = !c.collapsed; save(); renderCats(); } break; }
+    case 'cat-up': moveIn(state.categories, id, -1); commit(); break;
+    case 'cat-down': moveIn(state.categories, id, 1); commit(); break;
+    case 'cat-edit': catSheet(id); break;
+    case 'cat-del': delCat(id); break;
+    case 'toggle-later': state.laterCollapsed = !state.laterCollapsed; save(); renderLater(); break;
+    case 'later-toggle': { const l = state.later.find(x => x.id === id); if (l) { l.done = !l.done; commit(); } break; }
+    case 'later-edit': laterEditSheet(id); break;
+    case 'later-del': state.later = state.later.filter(x => x.id !== id); commit(); break;
+    case 'later-clear': state.later = state.later.filter(x => !x.done); commit(); break;
+  }
+}, true);
+
+document.addEventListener('submit', e => {
+  if (e.target.id === 'laterForm') {
+    e.preventDefault();
+    const inp = $('#laterInput'), v = inp.value.trim();
+    if (!v) return;
+    if (addLater(v)) { const again = $('#laterInput'); if (again) again.value = ''; }
+    else toast('That does not look like a link');
+  }
+});
+$('#q').addEventListener('input', e => { UI.q = e.target.value.trim().toLowerCase(); renderLater(); renderCats(); });
+
+/* ---------- Share menu: links arrive as ?title=…&text=…&url=… ---------- */
+function handleShare() {
+  const p = new URLSearchParams(location.search);
+  if (!(p.has('url') || p.has('text') || p.has('title'))) return;
+  const title = p.get('title') || '', text = p.get('text') || '', url = p.get('url') || '';
+  const link = extractUrl(url) || extractUrl(text) || extractUrl(title);
+  history.replaceState({}, '', location.pathname);
+  if (!link) { toast('No link found in what you shared'); return; }
+  const rest = text.replace(link, '').trim();
+  const name = (rest && rest.length < 120 ? rest : '') || (title && !extractUrl(title) ? title : '');
+  addLater(link, name);
+}
+
+/* ---------- start ---------- */
+state = loadState();
+renderAll();
+handleShare();
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+})();
+</script>
+</body>
+</html>
