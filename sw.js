@@ -1,6 +1,6 @@
 // Dial service worker: keeps the app shell available offline.
 // If you ever change index.html and want phones to pick it up faster, bump the version below.
-const CACHE = 'dial-shell-v2';
+const CACHE = 'dial-shell-v3';
 const INDEX = new URL('index.html', self.registration.scope).href;
 const SHELL = [
   INDEX,
