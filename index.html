@@ -12,6 +12,7 @@
 :root{
   --bg:#14121c; --surface:#1e1b2b; --surface2:#292539; --line:#38334e;
   --text:#f3f0fb; --muted:#a8a3bd; --accent:#c9bfff; --accent-ink:#1a1530; --star:#ffc83d;
+  --cols:2;--tile-min:100px;--fav-w:158px;--t-fs:16px;--emoji-fs:22px;--tp:12px 44px 42px 12px;--badge-h:30px;--badge-fs:12px;--star-w:46px;--h2:19px;--preset-w:112px;--preset-h:68px;--preset-fs:15px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{color-scheme:dark}
@@ -21,6 +22,9 @@ body{
   padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) calc(96px + env(safe-area-inset-bottom,0px)) env(safe-area-inset-left,0px);
 }
 body.locked{overflow:hidden}
+body.size-m{--cols:2;--tile-min:84px;--fav-w:140px;--t-fs:14px;--emoji-fs:19px;--tp:10px 38px 36px 10px;--badge-h:26px;--badge-fs:11px;--star-w:40px;--h2:17px;--preset-w:100px;--preset-h:60px;--preset-fs:14px}
+body.size-s{--cols:3;--tile-min:70px;--fav-w:118px;--t-fs:12.5px;--emoji-fs:17px;--tp:8px 28px 32px 8px;--badge-h:24px;--badge-fs:10.5px;--star-w:34px;--h2:16px;--preset-w:92px;--preset-h:54px;--preset-fs:13px}
+body.editing .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 button{font:inherit;color:inherit;cursor:pointer}
 .wrap{max-width:640px;margin:0 auto;padding:0 14px}
@@ -36,16 +40,16 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 /* service launcher: chunky preset keys */
 .preset{
-  flex:0 0 auto;width:112px;height:68px;border-radius:18px;padding:10px 12px;
+  flex:0 0 auto;width:var(--preset-w);height:var(--preset-h);border-radius:18px;padding:10px 12px;
   display:flex;align-items:flex-end;text-decoration:none;
-  background:var(--c);color:var(--ink);font-weight:800;font-size:15px;line-height:1.1;
+  background:var(--c);color:var(--ink);font-weight:800;font-size:var(--preset-fs);line-height:1.1;
   box-shadow:inset 0 -5px 0 rgba(0,0,0,.2);
 }
 .preset:active{transform:translateY(2px);box-shadow:inset 0 -2px 0 rgba(0,0,0,.2)}
 
 /* section titles */
 .sec-head{display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;min-height:44px}
-.sec-head h2{margin:0;font-size:19px;font-weight:750;letter-spacing:-.01em}
+.sec-head h2{margin:0;font-size:var(--h2);font-weight:750;letter-spacing:-.01em}
 .hint{color:var(--muted);font-size:14px;margin:0 0 10px}
 
 /* filters */
@@ -64,23 +68,23 @@ button{font:inherit;color:inherit;cursor:pointer}
 .chip[aria-pressed=true] i{background:var(--ink,var(--accent-ink))}
 
 /* tiles */
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.scroll-row .tile{flex:0 0 158px}
-.tile{position:relative;background:var(--surface);border-radius:16px;border-left:5px solid var(--c);min-height:100px;overflow:hidden}
+.grid{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:10px}
+.scroll-row .tile{flex:0 0 var(--fav-w)}
+.tile{position:relative;background:var(--surface);border-radius:16px;border-left:5px solid var(--c);min-height:var(--tile-min);overflow:hidden}
 .tile:active{background:var(--surface2)}
 .tile-link{
-  display:block;width:100%;height:100%;min-height:100px;padding:12px 44px 42px 12px;
+  display:block;width:100%;height:100%;min-height:var(--tile-min);padding:var(--tp);
   color:inherit;text-decoration:none;text-align:left;background:none;border:0;
   -webkit-touch-callout:none;-webkit-user-select:none;user-select:none;
 }
-.emoji{display:block;font-size:22px;line-height:1.1;margin-bottom:4px}
-.t-title{font-weight:700;font-size:16px;line-height:1.2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+.emoji{display:block;font-size:var(--emoji-fs);line-height:1.1;margin-bottom:4px}
+.t-title{font-weight:700;font-size:var(--t-fs);line-height:1.2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .badge{
-  position:absolute;left:10px;bottom:7px;height:30px;max-width:calc(100% - 20px);padding:0 10px 0 8px;border-radius:15px;border:0;
-  background:rgba(255,255,255,.07);color:var(--c);font-weight:650;font-size:12px;display:flex;align-items:center;gap:6px;
+  position:absolute;left:10px;bottom:7px;height:var(--badge-h);max-width:calc(100% - 20px);padding:0 10px 0 8px;border-radius:15px;border:0;
+  background:rgba(255,255,255,.07);color:var(--c);font-weight:650;font-size:var(--badge-fs);display:flex;align-items:center;gap:6px;
 }
 .badge span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.star{position:absolute;top:0;right:0;width:46px;height:46px;border:0;background:none;color:var(--muted);font-size:22px}
+.star{position:absolute;top:0;right:0;width:var(--star-w);height:var(--star-w);border:0;background:none;color:var(--muted);font-size:22px}
 .star[aria-pressed=true]{color:var(--star)}
 .tile-edit{position:absolute;right:4px;bottom:4px;display:flex;gap:2px}
 .tile-edit .icon-btn{width:34px;height:34px;font-size:14px;background:var(--surface2)}
@@ -89,10 +93,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* categories */
 .cat{margin-top:6px}
 .cat-head{display:flex;align-items:center;gap:2px;margin:10px 0 8px}
-.cat-toggle{flex:1;min-height:48px;display:flex;align-items:center;gap:10px;background:none;border:0;text-align:left;padding:0}
-.chev{display:inline-block;width:18px;color:var(--muted);transition:transform .15s}
+.cat-toggle{flex:1;min-height:56px;display:flex;align-items:center;gap:10px;background:none;border:0;text-align:left;padding:0}
+.chev{display:inline-block;width:30px;text-align:center;font-size:28px;line-height:1;color:var(--accent);transition:transform .15s}
 .cat-toggle[aria-expanded=true] .chev{transform:rotate(90deg)}
-.cat-name{font-size:19px;font-weight:750;letter-spacing:-.01em}
+.cat-name{font-size:var(--h2);font-weight:750;letter-spacing:-.01em}
 .count{color:var(--muted);font-size:14px}
 .empty{color:var(--muted);font-size:14px;padding:6px 0 12px}
 
@@ -214,6 +218,8 @@ const SEED = {
     { id: "tunein",      name: "TuneIn",        home: "https://tunein.com",            color: "#22d3c5", hosts: ["tunein.com"],                  launcher: true  },
     { id: "radionet",    name: "Radio.net",     home: "https://www.radio.net",         color: "#3b9dff", hosts: ["radio.net"],                   launcher: true  },
     { id: "radioplayer", name: "Radioplayer",   home: "https://www.radioplayer.co.uk", color: "#ffc83d", hosts: ["radioplayer.co.uk", "radioplayer.com"], launcher: true },
+    { id: "bandcamp",    name: "Bandcamp",      home: "https://bandcamp.com",          color: "#1da0c3", hosts: ["bandcamp.com"],              launcher: true  },
+    { id: "playerfm",    name: "Player FM",     home: "https://player.fm",             color: "#ff7a59", hosts: ["player.fm"],                  launcher: true  },
     { id: "ytalbum",     name: "YouTube album", home: "https://www.youtube.com",       color: "#f08a4b", hosts: ["youtube.com", "youtu.be"],     launcher: false }
   ],
 
@@ -279,6 +285,42 @@ function extractUrl(text) {
   return m ? m[0].replace(/[.,;)]+$/, '') : null;
 }
 
+/* ---------- guess a name from a link (no lookups, just the words in the link) ---------- */
+function humanise(s) {
+  let t; try { t = decodeURIComponent(s); } catch (e) { t = s; }
+  t = t.replace(/[-_+]+/g, ' ').replace(/\s+/g, ' ').trim();
+  return t ? t.charAt(0).toUpperCase() + t.slice(1) : '';
+}
+function guessTitle(url) {
+  const p = parseUrl(url); if (!p) return '';
+  const host = p.hostname.toLowerCase().replace(/^www\./, '');
+  const segs = p.pathname.split('/').filter(Boolean);
+  const on = d => host === d || host.endsWith('.' + d);
+  let out = '';
+  if (on('tunein.com')) {
+    if (segs[0] === 'radio' && segs[1]) out = humanise(segs[1].replace(/-[a-z]\d+$/i, ''));
+  } else if (on('radio.net')) {
+    if (segs[0] === 's' && segs[1]) out = humanise(segs[1]);
+  } else if (on('mixcloud.com')) {
+    if (segs[0] !== 'discover' && segs.length >= 2) out = humanise(segs[1]);
+    else if (segs.length === 1 && !['discover', 'upload'].includes(segs[0])) out = humanise(segs[0]);
+  } else if (on('bbc.co.uk') || on('bbc.com')) {
+    const last = segs[segs.length - 1] || '';
+    if (/^live:/.test(last)) {
+      const id = last.slice(5);
+      out = /^bbc_/i.test(id) ? 'BBC ' + id.slice(4).replace(/[-_]+/g, ' ') : humanise(id);
+    }
+  } else if (on('bandcamp.com')) {
+    const sub = host.replace(/\.?bandcamp\.com$/, '');
+    const item = (segs[0] === 'album' || segs[0] === 'track') && segs[1] ? humanise(segs[1]) : '';
+    const artist = sub ? humanise(sub) : '';
+    out = item && artist ? item + ' – ' + artist : (item || artist);
+  } else if (on('player.fm')) {
+    if (segs[0] === 'series' && segs[1]) out = humanise(segs[1].replace(/-?\d+$/, ''));
+  }
+  return out.slice(0, 80);
+}
+
 /* ---------- state ---------- */
 const KEY = 'dial.v1';
 const OTHER = { id: '', name: 'Other', home: '', color: '#8d89a3', hosts: [], launcher: false };
@@ -288,7 +330,8 @@ let warned = false;
 
 function sanitize(s) {
   return {
-    v: 1,
+    v: 2,
+    size: ['s', 'm', 'l'].includes(s.size) ? s.size : 'm',
     services: s.services.map(x => ({
       id: String(x.id || uid()), name: String(x.name || 'Service'), home: cleanUrl(x.home) || '',
       color: /^#[0-9a-f]{6}$/i.test(x.color) ? x.color : '#8d89a3',
@@ -304,10 +347,22 @@ function sanitize(s) {
   };
 }
 const validShape = s => s && Array.isArray(s.services) && Array.isArray(s.categories) && Array.isArray(s.tiles) && Array.isArray(s.later);
+// Older saved data gets Bandcamp and Player FM added once (unless you already added them yourself).
+function migrate(st, fromV) {
+  if (fromV < 2) {
+    SEED.services.filter(x => x.id === 'bandcamp' || x.id === 'playerfm').forEach(def => {
+      if (!st.services.some(x => x.id === def.id || x.hosts.includes(def.hosts[0]))) {
+        st.services.push(sanitize({ services: [def], categories: [], tiles: [], later: [] }).services[0]);
+      }
+    });
+  }
+  return st;
+}
+const fromRaw = s => migrate(sanitize(s), Number(s.v) || 1);
 function loadState() {
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) { const s = JSON.parse(raw); if (validShape(s)) return sanitize(s); }
+    if (raw) { const s = JSON.parse(raw); if (validShape(s)) return fromRaw(s); }
   } catch (e) { /* fall through to the starter list */ }
   return sanitize(clone(SEED));
 }
@@ -367,7 +422,7 @@ function renderFavs() {
   const favs = state.tiles.filter(t => t.fav);
   $('#favs').innerHTML = `<div class="sec-head"><h2>Favourites</h2></div>` + (favs.length
     ? `<div class="scroll-row">${favs.map(tileHTML).join('')}</div>`
-    : `<p class="hint">Tap ☆ on a tile, or press and hold it, to pin it here.</p>`);
+    : `<p class="hint">Tap ☆ on a tile to pin it here. Press and hold a tile for more options.</p>`);
 }
 
 function renderChips() {
@@ -427,7 +482,11 @@ function renderCats() {
   $('#cats').innerHTML = html || (filtering() ? '<p class="empty">Nothing matches.</p>' : '<p class="empty">No sections yet. Manage → Add section.</p>');
 }
 
-function renderEditBar() { $('#editbar').classList.toggle('on', UI.edit); }
+function renderEditBar() {
+  $('#editbar').classList.toggle('on', UI.edit);
+  document.body.classList.toggle('editing', UI.edit);
+  ['s', 'm', 'l'].forEach(k => document.body.classList.toggle('size-' + k, state.size === k));
+}
 function renderAll() { renderLauncher(); renderFavs(); renderChips(); renderLater(); renderCats(); renderEditBar(); }
 
 /* ---------- sheets (pop-up panels) ---------- */
@@ -456,6 +515,7 @@ function manageSheet() {
     <button type="button" data-act="add-cat">Add section</button>
     <button type="button" data-act="edit-mode">Reorder, edit or delete</button>
     <button type="button" data-act="services">Services and top buttons</button>
+    <button type="button" data-act="size-menu">Display size</button>
     <hr>
     <button type="button" data-act="export">Export backup</button>
     <button type="button" data-act="import">Import backup</button>
@@ -463,6 +523,18 @@ function manageSheet() {
     <hr>
     <button type="button" data-act="reset">Reset to starter list</button>
   </div>`);
+}
+
+function sizeSheet() {
+  const opt = (k, label, note) => `<button type="button" data-act="size" data-size="${k}" aria-pressed="${state.size === k}">${state.size === k ? '✓ ' : ''}${label} <small style="color:var(--muted)">${note}</small></button>`;
+  openSheet('Display size', `<div class="menu">${opt('s', 'Small', '3 tiles across')}${opt('m', 'Medium', '2 across, compact')}${opt('l', 'Large', '2 across, big')}</div>`);
+}
+function tileMenu(id) {
+  const t = state.tiles.find(x => x.id === id); if (!t) return;
+  openSheet(t.title, `<div class="menu">
+    <button type="button" data-act="tm-edit" data-id="${t.id}">Edit</button>
+    <button type="button" data-act="tm-fav" data-id="${t.id}">${t.fav ? 'Remove from Favourites' : 'Add to Favourites'}</button>
+    <button type="button" data-act="tm-del" data-id="${t.id}">Delete</button></div>`);
 }
 
 const svcOptions = sel => `<option value="">Other</option>` + state.services.map(s => `<option value="${esc(s.id)}" ${s.id === sel ? 'selected' : ''}>${esc(s.name)}</option>`).join('');
@@ -483,7 +555,13 @@ function tileSheet(id) {
   </form>`, b => {
     const f = $('#f', b); let touched = !!t;
     f.elements.service.addEventListener('change', () => { touched = true; });
-    f.elements.url.addEventListener('input', () => { if (!touched) f.elements.service.value = detectService(cleanUrl(f.elements.url.value) || ''); });
+    let nameTouched = !!t;
+    f.elements.title.addEventListener('input', () => { nameTouched = true; });
+    f.elements.url.addEventListener('input', () => {
+      const u = cleanUrl(f.elements.url.value) || '';
+      if (!touched) f.elements.service.value = detectService(u);
+      if (!nameTouched) f.elements.title.value = guessTitle(u) || '';
+    });
     if (t) $('#del', b).onclick = () => delTile(id);
     f.onsubmit = e => {
       e.preventDefault();
@@ -587,7 +665,7 @@ function addLater(url, title) {
   if (!u) return false;
   if (state.later.some(l => l.url === u && !l.done)) { toast('Already in Listen later'); return true; }
   const s = svcOf(detectService(u));
-  state.later.unshift({ id: uid(), title: (title && title.trim()) || (s.id ? s.name + ' link' : parseUrl(u).hostname.replace(/^www\./, '')), url: u, done: false, added: Date.now() });
+  state.later.unshift({ id: uid(), title: (title && title.trim()) || guessTitle(u) || (s.id ? s.name + ' link' : parseUrl(u).hostname.replace(/^www\./, '')), url: u, done: false, added: Date.now() });
   state.laterCollapsed = false;
   commit(); toast('Saved to Listen later');
   return true;
@@ -612,7 +690,7 @@ function importBackup() {
       let s; try { s = JSON.parse(txt); } catch (e) { toast('That file is not a valid backup'); return; }
       if (!validShape(s)) { toast('That file is not a Dial backup'); return; }
       confirmSheet('Replace everything on this phone with the backup? Your current tiles and saved links will be overwritten.', 'Replace', () => {
-        state = sanitize(s); UI.filter = ''; commit(); toast('Backup loaded');
+        state = fromRaw(s); UI.filter = ''; commit(); toast('Backup loaded');
       });
     });
   };
@@ -652,7 +730,7 @@ document.addEventListener('pointerdown', e => {
   const link = e.target.closest('.tile-link');
   if (!link || UI.edit || !link.dataset.id) return;
   hx = e.clientX; hy = e.clientY;
-  holdTimer = setTimeout(() => { held = true; toggleFav(link.dataset.id, true); }, 550);
+  holdTimer = setTimeout(() => { held = true; if (navigator.vibrate) navigator.vibrate(25); tileMenu(link.dataset.id); }, 550);
 });
 document.addEventListener('pointermove', e => { if (holdTimer && (Math.abs(e.clientX - hx) > 10 || Math.abs(e.clientY - hy) > 10)) { clearTimeout(holdTimer); holdTimer = null; } });
 ['pointerup', 'pointercancel'].forEach(n => document.addEventListener(n, () => { clearTimeout(holdTimer); holdTimer = null; }));
@@ -660,11 +738,16 @@ document.addEventListener('contextmenu', e => { if (e.target.closest('.tile-link
 
 /* ---------- clicks ---------- */
 document.addEventListener('click', e => {
-  if (held) { held = false; if (e.target.closest('.tile-link')) { e.preventDefault(); e.stopPropagation(); return; } }
+  if (held) { held = false; e.preventDefault(); e.stopPropagation(); return; }
   const el = e.target.closest('[data-act]'); if (!el) return;
   const act = el.dataset.act, id = el.dataset.id;
   switch (act) {
     case 'manage': manageSheet(); break;
+    case 'size-menu': sizeSheet(); break;
+    case 'size': state.size = el.dataset.size; save(); renderAll(); sizeSheet(); break;
+    case 'tm-edit': tileSheet(id); break;
+    case 'tm-fav': closeSheet(); toggleFav(id); break;
+    case 'tm-del': delTile(id); break;
     case 'close-sheet': closeSheet(); break;
     case 'add-tile': tileSheet(); break;
     case 'add-cat': catSheet(); break;
