@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#14121c">
-<title>Dial</title>
+<meta name="theme-color" content="#f6f4fb">
+<title>Audio Dial</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -13,6 +13,7 @@
   --bg:#14121c; --surface:#1e1b2b; --surface2:#292539; --line:#38334e;
   --text:#f3f0fb; --muted:#a8a3bd; --accent:#c9bfff; --accent-ink:#1a1530; --star:#ffc83d;
   --later-min:60px;--cols:2;--tile-min:100px;--fav-w:158px;--t-fs:16px;--emoji-fs:22px;--tp:12px 44px 42px 12px;--badge-h:30px;--badge-fs:12px;--star-w:46px;--h2:19px;--preset-w:112px;--preset-h:68px;--preset-fs:15px;
+  --tint-base:#1e1b2b;--tint-pct:16%;--badge-bg:rgba(255,255,255,.07);--bfg-pct:100%;--toast-bg:#f3f0fb;--toast-fg:#1a1530;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{color-scheme:dark}
@@ -25,6 +26,8 @@ body.locked{overflow:hidden}
 body.size-m{--later-min:50px;--cols:2;--tile-min:84px;--fav-w:140px;--t-fs:14px;--emoji-fs:19px;--tp:10px 38px 36px 10px;--badge-h:26px;--badge-fs:11px;--star-w:40px;--h2:17px;--preset-w:100px;--preset-h:60px;--preset-fs:14px}
 body.size-s{--later-min:44px;--cols:3;--tile-min:70px;--fav-w:118px;--t-fs:12.5px;--emoji-fs:17px;--tp:8px 28px 32px 8px;--badge-h:24px;--badge-fs:10.5px;--star-w:34px;--h2:16px;--preset-w:92px;--preset-h:54px;--preset-fs:13px}
 body.editing .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+body.theme-light{--bg:#f6f4fb;--surface:#ffffff;--surface2:#ebe7f5;--line:#d8d3e6;--text:#1a1530;--muted:#645f7e;--accent:#5a49d6;--accent-ink:#ffffff;--star:#c98a00;--tint-base:#ffffff;--tint-pct:20%;--badge-bg:#ffffff;--bfg-pct:50%;--toast-bg:#1a1530;--toast-fg:#f3f0fb}
+body.theme-light .btn.danger{color:#c0302a}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 button{font:inherit;color:inherit;cursor:pointer}
 .wrap{max-width:640px;margin:0 auto;padding:0 14px}
@@ -70,8 +73,12 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* tiles */
 .grid{display:grid;grid-template-columns:repeat(var(--cols),minmax(0,1fr));gap:10px}
 .scroll-row .tile{flex:0 0 var(--fav-w)}
-.tile{position:relative;background:var(--surface);border-radius:16px;border-left:5px solid var(--c);min-height:var(--tile-min);overflow:hidden}
-.tile:active{background:var(--surface2)}
+.tile{position:relative;background:color-mix(in srgb,var(--c) var(--tint-pct),var(--tint-base));border-radius:16px;border-left:5px solid var(--c);min-height:var(--tile-min);overflow:hidden}
+.tile:active{filter:brightness(.95)}
+.tile.solid{background:var(--c);border-left:0;color:var(--ink)}
+.tile.solid .badge{background:color-mix(in srgb,var(--ink) 14%,transparent);color:var(--ink)}
+.tile.solid .badge i{background:var(--ink)}
+.tile.solid .star,.tile.solid .star[aria-pressed=true]{color:var(--ink)}
 .tile-link{
   display:block;width:100%;height:100%;min-height:var(--tile-min);padding:var(--tp);
   color:inherit;text-decoration:none;text-align:left;background:none;border:0;
@@ -81,7 +88,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .t-title{font-weight:700;font-size:var(--t-fs);line-height:1.2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
 .badge{
   position:absolute;left:10px;bottom:7px;height:var(--badge-h);max-width:calc(100% - 20px);padding:0 10px 0 8px;border-radius:15px;border:0;
-  background:rgba(255,255,255,.07);color:var(--c);font-weight:650;font-size:var(--badge-fs);display:flex;align-items:center;gap:6px;
+  background:var(--badge-bg);color:color-mix(in srgb,var(--c) var(--bfg-pct),#000);font-weight:650;font-size:var(--badge-fs);display:flex;align-items:center;gap:6px;
 }
 .badge span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .star{position:absolute;top:0;right:0;width:var(--star-w);height:var(--star-w);border:0;background:none;color:var(--muted);font-size:22px}
@@ -117,7 +124,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .tick[aria-pressed=true]::before{background:var(--accent);border-color:var(--accent)}
 .later-main{flex:1;min-width:0;padding:6px 4px;color:inherit;text-decoration:none;display:block}
 .l-title{display:block;font-weight:650;font-size:var(--t-fs);overflow-wrap:anywhere}
-.l-badge{display:inline-flex;align-items:center;gap:6px;color:var(--c);font-size:var(--badge-fs);font-weight:650;margin-top:2px}
+.l-badge{display:inline-flex;align-items:center;gap:6px;color:color-mix(in srgb,var(--c) var(--bfg-pct),#000);font-size:var(--badge-fs);font-weight:650;margin-top:2px}
 .later-add{display:flex;gap:8px;margin-top:10px}
 .later-add input{flex:1;min-width:0;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:0 14px;font-size:16px}
 .linkish{background:none;border:0;color:var(--accent);font-weight:650;padding:10px 4px;min-height:44px}
@@ -164,7 +171,7 @@ form input[type=checkbox]{width:24px;height:24px;accent-color:var(--accent)}
 .editbar .btn{flex:0 0 auto}
 #toast{
   position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom,0px));transform:translate(-50%,10px);z-index:60;
-  background:#f3f0fb;color:#1a1530;padding:12px 18px;border-radius:14px;font-weight:600;font-size:15px;max-width:90vw;
+  background:var(--toast-bg);color:var(--toast-fg);padding:12px 18px;border-radius:14px;font-weight:600;font-size:15px;max-width:90vw;
   opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;text-align:center;
 }
 #toast.show{opacity:1;transform:translate(-50%,0)}
@@ -175,7 +182,7 @@ form input[type=checkbox]{width:24px;height:24px;accent-color:var(--accent)}
 
 <div class="wrap">
   <header class="top">
-    <h1>Dial</h1>
+    <h1>Audio Dial</h1>
     <button class="pill-btn" data-act="manage" type="button">Manage</button>
   </header>
 
@@ -210,16 +217,19 @@ form input[type=checkbox]{width:24px;height:24px;accent-color:var(--accent)}
 const SEED = {
 
   // SERVICES. "launcher": true puts the service in the button row at the top.
+  // Optional: "pkg" is the Android app ID, so links open straight in that app.
+  // Optional: "appHome" is a special link that launches the app from the top button.
   // "hosts" are the website names used to auto-detect the service from a link.
   services: [
     { id: "ytmusic",     name: "YouTube Music", home: "https://music.youtube.com",     color: "#ff4e45", hosts: ["music.youtube.com"],           launcher: true  },
-    { id: "bbc",         name: "BBC Sounds",    home: "https://www.bbc.co.uk/sounds",  color: "#ff5c9a", hosts: ["bbc.co.uk", "bbc.com"],        launcher: true  },
+    { pkg: "com.bbc.sounds", id: "bbc",         name: "BBC Sounds",    home: "https://www.bbc.co.uk/sounds",  color: "#ff5c9a", hosts: ["bbc.co.uk", "bbc.com"],        launcher: true  },
     { id: "mixcloud",    name: "Mixcloud",      home: "https://www.mixcloud.com",      color: "#8b7bff", hosts: ["mixcloud.com"],                launcher: true  },
     { id: "tunein",      name: "TuneIn",        home: "https://tunein.com",            color: "#22d3c5", hosts: ["tunein.com"],                  launcher: true  },
     { id: "radionet",    name: "Radio.net",     home: "https://www.radio.net",         color: "#3b9dff", hosts: ["radio.net"],                   launcher: true  },
-    { id: "radioplayer", name: "Radioplayer",   home: "https://www.radioplayer.co.uk", color: "#ffc83d", hosts: ["radioplayer.co.uk", "radioplayer.com"], launcher: true },
-    { id: "bandcamp",    name: "Bandcamp",      home: "https://bandcamp.com",          color: "#1da0c3", hosts: ["bandcamp.com"],              launcher: true  },
+    { pkg: "uk.co.radioplayer", id: "radioplayer", name: "Radioplayer",   home: "https://www.radioplayer.co.uk", color: "#ffc83d", hosts: ["radioplayer.co.uk", "radioplayer.com"], launcher: true },
+    { pkg: "com.bandcamp.android", appHome: "x-bandcamp://open", id: "bandcamp",    name: "Bandcamp",      home: "https://bandcamp.com",          color: "#1da0c3", hosts: ["bandcamp.com"],              launcher: true  },
     { id: "playerfm",    name: "Player FM",     home: "https://player.fm",             color: "#ff7a59", hosts: ["player.fm"],                  launcher: true  },
+    { pkg: "fm.rinse.player", id: "rinsefm",     name: "Rinse FM",      home: "https://rinse.fm",              color: "#b6e83e", hosts: ["rinse.fm"],                  launcher: true  },
     { id: "ytalbum",     name: "YouTube album", home: "https://www.youtube.com",       color: "#f08a4b", hosts: ["youtube.com", "youtu.be"],     launcher: false }
   ],
 
@@ -321,6 +331,21 @@ function guessTitle(url) {
   return out.slice(0, 80);
 }
 
+/* ---------- opening links in apps (Android) ---------- */
+const isAndroid = /Android/i.test(navigator.userAgent || '');
+function intentFor(url, pkg, fallback) {
+  const u = parseUrl(url); if (!u) return '';
+  return 'intent://' + u.host + u.pathname + u.search + '#Intent;scheme=' + u.protocol.replace(':', '') + ';package=' + pkg + ';S.browser_fallback_url=' + encodeURIComponent(fallback) + ';end';
+}
+function linkAttrs(url, svc) {
+  if (isAndroid && svc && svc.pkg) { const i = intentFor(url, svc.pkg, url); if (i) return `href="${esc(i)}"`; }
+  return `href="${esc(url)}" target="_blank" rel="noopener noreferrer"`;
+}
+function launchAttrs(svc) {
+  if (isAndroid && svc.pkg && svc.appHome) { const i = intentFor(svc.appHome, svc.pkg, svc.home || svc.appHome); if (i) return `href="${esc(i)}"`; }
+  return linkAttrs(svc.home, svc);
+}
+
 /* ---------- state ---------- */
 const KEY = 'dial.v1';
 const OTHER = { id: '', name: 'Other', home: '', color: '#8d89a3', hosts: [], launcher: false };
@@ -330,12 +355,15 @@ let warned = false;
 
 function sanitize(s) {
   return {
-    v: 2,
+    v: 4,
     size: ['s', 'm', 'l'].includes(s.size) ? s.size : 'm',
+    theme: ['dark', 'light', 'auto'].includes(s.theme) ? s.theme : 'light',
     services: s.services.map(x => ({
       id: String(x.id || uid()), name: String(x.name || 'Service'), home: cleanUrl(x.home) || '',
       color: /^#[0-9a-f]{6}$/i.test(x.color) ? x.color : '#8d89a3',
-      hosts: Array.isArray(x.hosts) ? x.hosts.map(h => String(h).toLowerCase()) : [], launcher: !!x.launcher
+      hosts: Array.isArray(x.hosts) ? x.hosts.map(h => String(h).toLowerCase()) : [], launcher: !!x.launcher,
+      pkg: /^[A-Za-z]\w*(\.\w+)+$/.test(String(x.pkg || '').trim()) ? String(x.pkg).trim() : '',
+      appHome: /^[a-z][a-z0-9+.-]*:\/\/\S+$/i.test(String(x.appHome || '').trim()) ? String(x.appHome).trim() : ''
     })),
     categories: s.categories.map(c => ({ id: String(c.id || uid()), name: String(c.name || 'Untitled'), emoji: String(c.emoji || ''), collapsed: !!c.collapsed })),
     tiles: s.tiles.map(t => ({
@@ -352,6 +380,17 @@ function migrate(st, fromV) {
   if (fromV < 2) {
     SEED.services.filter(x => x.id === 'bandcamp' || x.id === 'playerfm').forEach(def => {
       if (!st.services.some(x => x.id === def.id || x.hosts.includes(def.hosts[0]))) {
+        st.services.push(sanitize({ services: [def], categories: [], tiles: [], later: [] }).services[0]);
+      }
+    });
+  }
+  if (fromV < 4) {
+    SEED.services.forEach(def => {
+      const have = st.services.find(x => x.id === def.id || x.hosts.includes(def.hosts[0]));
+      if (have) {
+        if (!have.pkg && def.pkg) have.pkg = def.pkg;
+        if (!have.appHome && def.appHome) have.appHome = def.appHome;
+      } else if (def.id === 'rinsefm') {
         st.services.push(sanitize({ services: [def], categories: [], tiles: [], later: [] }).services[0]);
       }
     });
@@ -401,17 +440,17 @@ const matches = (text, svcId) => !filtering() || ((!UI.filter || svcId === UI.fi
 function renderLauncher() {
   const list = state.services.filter(s => s.launcher && s.home);
   $('#launcher').innerHTML = list.map(s =>
-    `<a class="preset" style="--c:${esc(s.color)};--ink:${inkFor(s.color)}" href="${esc(s.home)}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a>`
+    `<a class="preset" style="--c:${esc(s.color)};--ink:${inkFor(s.color)}" ${launchAttrs(s)}>${esc(s.name)}</a>`
   ).join('') || '<p class="hint">No service buttons yet. Manage → Services.</p>';
 }
 
-function tileHTML(t) {
+function tileHTML(t, solid) {
   const s = svcOf(t.service);
   const label = (t.emoji ? `<span class="emoji" aria-hidden="true">${esc(t.emoji)}</span>` : '') + `<span class="t-title">${esc(t.title)}</span>`;
   const link = UI.edit
     ? `<button type="button" class="tile-link" data-act="edit-tile" data-id="${t.id}">${label}</button>`
-    : `<a class="tile-link" href="${esc(t.url)}" target="_blank" rel="noopener noreferrer" data-id="${t.id}">${label}</a>`;
-  return `<div class="tile" style="--c:${esc(s.color)}">${link}
+    : `<a class="tile-link" ${linkAttrs(t.url, s)} data-id="${t.id}">${label}</a>`;
+  return `<div class="tile${solid ? ' solid' : ''}" style="--c:${esc(s.color)};--ink:${inkFor(s.color)}">${link}
     <button type="button" class="star" data-act="star" data-id="${t.id}" aria-pressed="${t.fav}" aria-label="${t.fav ? 'Remove from' : 'Add to'} favourites">${t.fav ? '★' : '☆'}</button>
     <button type="button" class="badge" data-act="filter-service" data-svc="${esc(s.id)}" aria-label="Show only ${esc(s.name)}"><i></i><span>${esc(s.name)}</span></button>
     ${UI.edit ? `<div class="tile-edit"><button class="icon-btn" data-act="tile-left" data-id="${t.id}" aria-label="Move earlier">◀</button><button class="icon-btn" data-act="tile-right" data-id="${t.id}" aria-label="Move later">▶</button><button class="icon-btn" data-act="del-tile" data-id="${t.id}" aria-label="Delete tile">✕</button></div>` : ''}
@@ -421,7 +460,7 @@ function tileHTML(t) {
 function renderFavs() {
   const favs = state.tiles.filter(t => t.fav);
   $('#favs').innerHTML = `<div class="sec-head"><h2>Favourites</h2></div>` + (favs.length
-    ? `<div class="scroll-row">${favs.map(tileHTML).join('')}</div>`
+    ? `<div class="scroll-row">${favs.map(t => tileHTML(t, true)).join('')}</div>`
     : `<p class="hint">Tap ☆ on a tile to pin it here. Press and hold a tile for more options.</p>`);
 }
 
@@ -446,7 +485,7 @@ function renderLater() {
     const s = svcOf(detectService(l.url));
     return `<li class="later-item ${l.done ? 'done' : ''}">
       <button type="button" class="tick" data-act="later-toggle" data-id="${l.id}" aria-pressed="${l.done}" aria-label="${l.done ? 'Mark as not done' : 'Mark as done'}"><span>✓</span></button>
-      <a class="later-main" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer"><span class="l-title">${esc(l.title)}</span><span class="l-badge" style="--c:${esc(s.color)}"><i></i>${esc(s.name)}</span></a>
+      <a class="later-main" ${linkAttrs(l.url, s)}><span class="l-title">${esc(l.title)}</span><span class="l-badge" style="--c:${esc(s.color)}"><i></i>${esc(s.name)}</span></a>
       <button type="button" class="icon-btn" data-act="later-edit" data-id="${l.id}" aria-label="Edit">✎</button>
       <button type="button" class="icon-btn" data-act="later-del" data-id="${l.id}" aria-label="Delete">✕</button>
     </li>`;
@@ -456,7 +495,7 @@ function renderLater() {
       <button type="button" class="cat-toggle" data-act="toggle-later" aria-expanded="${open}"><span class="chev">▸</span><span class="cat-name">Listen later</span><span class="count">${pending}</span></button>
       ${doneCount ? `<button type="button" class="linkish" data-act="later-clear">Clear ${doneCount} done</button>` : ''}
     </div>` + (open ? `
-    ${rows ? `<ul class="later-list">${rows}</ul>` : `<p class="empty">${state.later.length ? 'Nothing matches your search.' : 'Nothing saved yet. Paste a link below, or share one to Dial from another app.'}</p>`}
+    ${rows ? `<ul class="later-list">${rows}</ul>` : `<p class="empty">${state.later.length ? 'Nothing matches your search.' : 'Nothing saved yet. Paste a link below, or share one to Audio Dial from another app.'}</p>`}
     <form id="laterForm" class="later-add"><input id="laterInput" type="text" inputmode="url" placeholder="Paste a link to save" autocomplete="off" aria-label="Link to save"><button class="btn primary" type="submit">Save</button></form>` : '');
   if ($('#laterInput') && prev) $('#laterInput').value = prev;
 }
@@ -476,13 +515,23 @@ function renderCats() {
         <button type="button" class="cat-toggle" data-act="toggle-cat" data-id="${c.id}" aria-expanded="${open}"><span class="chev">▸</span>${c.emoji ? `<span aria-hidden="true">${esc(c.emoji)}</span>` : ''}<span class="cat-name">${esc(c.name)}</span><span class="count">${state.tiles.filter(t => t.cat === c.id).length}</span></button>
         ${editBtns}
       </div>
-      ${open ? (tiles.length ? `<div class="grid">${tiles.map(tileHTML).join('')}</div>` : `<p class="empty">No tiles here yet. Manage → Add tile.</p>`) : ''}
+      ${open ? (tiles.length ? `<div class="grid">${tiles.map(t => tileHTML(t)).join('')}</div>` : `<p class="empty">No tiles here yet. Manage → Add tile.</p>`) : ''}
     </section>`;
   }).join('');
   $('#cats').innerHTML = html || (filtering() ? '<p class="empty">Nothing matches.</p>' : '<p class="empty">No sections yet. Manage → Add section.</p>');
 }
 
+const mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+function applyTheme() {
+  const dark = state.theme === 'dark' || (state.theme === 'auto' && mq && mq.matches);
+  document.body.classList.toggle('theme-light', !dark);
+  document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+  const m = document.querySelector('meta[name=theme-color]');
+  if (m) m.setAttribute('content', dark ? '#14121c' : '#f6f4fb');
+}
+if (mq && mq.addEventListener) mq.addEventListener('change', () => { if (state) applyTheme(); });
 function renderEditBar() {
+  applyTheme();
   $('#editbar').classList.toggle('on', UI.edit);
   document.body.classList.toggle('editing', UI.edit);
   ['s', 'm', 'l'].forEach(k => document.body.classList.toggle('size-' + k, state.size === k));
@@ -516,10 +565,11 @@ function manageSheet() {
     <button type="button" data-act="edit-mode">Reorder, edit or delete</button>
     <button type="button" data-act="services">Services and top buttons</button>
     <button type="button" data-act="size-menu">Display size</button>
+    <button type="button" data-act="theme-menu">Theme</button>
     <hr>
     <button type="button" data-act="export">Export backup</button>
     <button type="button" data-act="import">Import backup</button>
-    ${deferredInstall ? '<button type="button" data-act="install">Install Dial on this phone</button>' : ''}
+    ${deferredInstall ? '<button type="button" data-act="install">Install Audio Dial on this phone</button>' : ''}
     <hr>
     <button type="button" data-act="reset">Reset to starter list</button>
   </div>`);
@@ -528,6 +578,10 @@ function manageSheet() {
 function sizeSheet() {
   const opt = (k, label, note) => `<button type="button" data-act="size" data-size="${k}" aria-pressed="${state.size === k}">${state.size === k ? '✓ ' : ''}${label} <small style="color:var(--muted)">${note}</small></button>`;
   openSheet('Display size', `<div class="menu">${opt('s', 'Small', '3 tiles across')}${opt('m', 'Medium', '2 across, compact')}${opt('l', 'Large', '2 across, big')}</div>`);
+}
+function themeSheet() {
+  const opt = (k, label, note) => `<button type="button" data-act="theme" data-theme="${k}">${state.theme === k ? '✓ ' : ''}${label} <small style="color:var(--muted)">${note}</small></button>`;
+  openSheet('Theme', `<div class="menu">${opt('light', 'Light', 'easiest to scan')}${opt('dark', 'Dark', 'for evenings')}${opt('auto', 'Auto', 'follows your phone')}</div>`);
 }
 function tileMenu(id) {
   const t = state.tiles.find(x => x.id === id); if (!t) return;
@@ -620,6 +674,8 @@ function svcSheet(id) {
     <label>Home page link (opened by the top button)<input type="text" name="home" inputmode="url" value="${esc(d.home)}" placeholder="https://"></label>
     <label>Colour<input type="color" name="color" value="${esc(d.color)}"></label>
     <label>Website names, to recognise links (comma separated)<input type="text" name="hosts" value="${esc(d.hosts.join(', '))}" placeholder="example.com, example.de"></label>
+    <label>Android app ID (optional, helps links open in the app)<input type="text" name="pkg" value="${esc(d.pkg || '')}" placeholder="com.example.app" autocapitalize="none"></label>
+    <label>App launch link (optional, for the top button)<input type="text" name="appHome" value="${esc(d.appHome || '')}" placeholder="x-example://open" autocapitalize="none"></label>
     <label class="check"><input type="checkbox" name="launcher" ${d.launcher ? 'checked' : ''}> Show as a button in the top row</label>
     <div class="row"><button type="button" class="btn" data-act="services">Cancel</button><button type="submit" class="btn primary">Save</button></div>
     ${s ? '<div class="row"><button type="button" class="btn danger" id="del">Delete service</button></div>' : ''}
@@ -634,7 +690,10 @@ function svcSheet(id) {
       const home = f.elements.home.value.trim() ? cleanUrl(f.elements.home.value) : '';
       if (f.elements.home.value.trim() && !home) { toast('That home page link does not look right'); return; }
       const hosts = f.elements.hosts.value.split(/[,\s]+/).map(h => h.toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/.*$/, '')).filter(Boolean);
-      const rec = { name: f.elements.name.value.trim() || 'Service', home, color: f.elements.color.value, hosts, launcher: f.elements.launcher.checked };
+      const pkg = f.elements.pkg.value.trim(), appHome = f.elements.appHome.value.trim();
+      if (pkg && !/^[A-Za-z]\w*(\.\w+)+$/.test(pkg)) { toast('The app ID should look like com.example.app'); return; }
+      if (appHome && !/^[a-z][a-z0-9+.-]*:\/\/\S+$/i.test(appHome)) { toast('The app launch link should look like x-example://open'); return; }
+      const rec = { name: f.elements.name.value.trim() || 'Service', home, color: f.elements.color.value, hosts, launcher: f.elements.launcher.checked, pkg, appHome };
       if (s) Object.assign(s, rec); else state.services.push(Object.assign({ id: uid() }, rec));
       save(); renderAll(); servicesSheet();
     };
@@ -676,7 +735,7 @@ function exportBackup() {
   const data = JSON.stringify(Object.assign({ app: 'dial', exportedAt: new Date().toISOString() }, state), null, 2);
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
-  a.download = 'dial-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.download = 'audio-dial-backup-' + new Date().toISOString().slice(0, 10) + '.json';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   toast('Backup downloaded');
@@ -688,7 +747,7 @@ function importBackup() {
     const file = inp.files && inp.files[0]; if (!file) return;
     file.text().then(txt => {
       let s; try { s = JSON.parse(txt); } catch (e) { toast('That file is not a valid backup'); return; }
-      if (!validShape(s)) { toast('That file is not a Dial backup'); return; }
+      if (!validShape(s)) { toast('That file is not an Audio Dial backup'); return; }
       confirmSheet('Replace everything on this phone with the backup? Your current tiles and saved links will be overwritten.', 'Replace', () => {
         state = fromRaw(s); UI.filter = ''; commit(); toast('Backup loaded');
       });
@@ -744,6 +803,8 @@ document.addEventListener('click', e => {
   switch (act) {
     case 'manage': manageSheet(); break;
     case 'size-menu': sizeSheet(); break;
+    case 'theme-menu': themeSheet(); break;
+    case 'theme': state.theme = el.dataset.theme; save(); renderAll(); themeSheet(); break;
     case 'size': state.size = el.dataset.size; save(); renderAll(); sizeSheet(); break;
     case 'tm-edit': tileSheet(id); break;
     case 'tm-fav': closeSheet(); toggleFav(id); break;
